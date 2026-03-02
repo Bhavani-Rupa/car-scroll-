@@ -159,7 +159,7 @@ export default function HeroSection() {
           {/* CAR */}
           <img
             ref={carRef}
-            src="/car.png"
+            src="https://ik.imagekit.io/h7tblvgrb/123/car.png"
             alt="car"
             style={{
               height: "200px",
