@@ -18,12 +18,9 @@ export default function HeroSection() {
 
     if (!car || !trail || !road) return;
 
-    const carWidth = car.offsetWidth;
-    const roadWidth = road.offsetWidth;
-
-    // ✅ STOP EXACTLY AT RIGHT EDGE
-    const endX = roadWidth - carWidth;
-
+    // =========================
+    // CAR SCROLL ANIMATION
+    // =========================
     const tween = gsap.to(car, {
       scrollTrigger: {
         trigger: sectionRef.current,
@@ -31,34 +28,48 @@ export default function HeroSection() {
         end: "bottom top",
         scrub: true,
         pin: trackRef.current,
+        invalidateOnRefresh: true,
       },
-      x: endX,
+
+      // 👇 Dynamic calculation (prevents overflow)
+      x: () => {
+        const carWidth = car.offsetWidth;
+        const roadWidth = road.clientWidth;
+
+        const visiblePortion = carWidth * 0.7; // 20% visible
+        return roadWidth - carWidth + visiblePortion;
+      },
+
       ease: "none",
+
       onUpdate: () => {
         const carRect = car.getBoundingClientRect();
         const roadRect = road.getBoundingClientRect();
 
-        const carFront =
-          carRect.left + carRect.width * 0.55;
+        // ===== Trail Growth =====
+        const greenEnd =
+          carRect.left + carRect.width * 0.15;
 
-        // Letter reveal
+        gsap.set(trail, {
+          width: greenEnd - roadRect.left,
+        });
+
+        // ===== Letter Reveal =====
+        const revealPoint =
+          carRect.left + carRect.width * 0.75;
+
         lettersRef.current.forEach((letter) => {
           if (!letter) return;
           const rect = letter.getBoundingClientRect();
           letter.style.opacity =
-            carFront >= rect.left ? 1 : 0;
-        });
-
-        // Green trail grow
-        gsap.set(trail, {
-          width:
-            carRect.left -
-            roadRect.left +
-            carRect.width * 0.55,
+            revealPoint >= rect.left ? 1 : 0;
         });
       },
     });
 
+    // =========================
+    // STATS FADE ANIMATION
+    // =========================
     gsap.utils.toArray(".text-box").forEach((box, i) => {
       gsap.to(box, {
         scrollTrigger: {
@@ -78,24 +89,28 @@ export default function HeroSection() {
   }, []);
 
   const statBox = {
-    padding: "24px 34px",
-    borderRadius: "14px",
-    opacity: 0,
-  };
+  opacity: 0,
+  transition: "opacity 0.5s",
+  padding: "1rem",
+  borderRadius: "10px",
+  margin: "1rem",
+  position: "absolute",
+  zIndex: 5,
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "flex-start",
+  flexDirection: "column",
+  gap: "5px",
+};
 
   const numberStyle = {
-    fontSize: "55px",
-    fontWeight: 600,
-    display: "block",
-    marginBottom: "6px",
-    lineHeight: "1",
-  };
+  fontSize: "58px",
+  fontWeight: 600,
+};
 
   const descStyle = {
-    fontSize: "16px",
-    fontWeight: 500,
-    lineHeight: "1.35",
-  };
+  fontSize: "18px",
+};
 
   return (
     <div
@@ -120,7 +135,7 @@ export default function HeroSection() {
         {/* ROAD */}
         <div
           style={{
-            width: "100%", // ✅ FIXED (no more overflow)
+            width: "100%",
             height: "200px",
             background: "#1e1e1e",
             position: "relative",
@@ -157,100 +172,99 @@ export default function HeroSection() {
 
           {/* HEADLINE */}
           <div
-            style={{
-              position: "absolute",
-              top: "50%",
-              left: "6%",
-              transform: "translateY(-50%)",
-              fontSize: "8rem",
-              fontWeight: 600,
-              letterSpacing: "-1px", // ✅ ORIGINAL FEEL
-              whiteSpace: "nowrap",
-              color: "#111",
-              zIndex: 5,
-            }}
-          >
-            {"WELCOME ITZFIZZ".split("").map((letter, i) => (
-              <span
-                key={i}
-                ref={(el) => (lettersRef.current[i] = el)}
-                style={{ opacity: 0 }}
-              >
-                {letter}
-              </span>
-            ))}
-          </div>
+  style={{
+    position: "absolute",
+    top: "1%",
+    left: "5%",
+    fontSize: "8rem",
+    fontWeight: "bold",
+    display: "flex",
+    gap: "0.3rem",
+    color: "#111",
+    zIndex: 5,
+  }}
+>
+  {"WELCOME              ITZFIZZ".split("").map((letter, i) => (
+    <span
+      key={i}
+      ref={(el) => (lettersRef.current[i] = el)}
+      style={{ opacity: 0 }}
+    >
+      {letter}
+    </span>
+  ))}
+</div>
         </div>
 
-        {/* STATS (unchanged from your design) */}
-
-        <div
-          className="text-box"
-          style={{
-            position: "absolute",
-            top: "7%",
-            right: "30%",
-            background: "#def54f",
-            color: "#111",
-            ...statBox,
-          }}
-        >
-          <span style={numberStyle}>58%</span>
-          <div style={descStyle}>
-            Increase in pick up point use
-          </div>
-        </div>
+        {/* STATS */}
 
         <div
-          className="text-box"
-          style={{
-            position: "absolute",
-            top: "7%",
-            right: "7%",
-            background: "#333",
-            color: "#fff",
-            ...statBox,
-          }}
-        >
-          <span style={numberStyle}>27%</span>
-          <div style={descStyle}>
-            Increase in pick up point use
-          </div>
-        </div>
+  className="text-box"
+  style={{
+    top: "7%",
+    right: "30%",
+    background: "#def54f",
+    color: "#111",
+    padding: "30px 30px",
+    ...statBox,
+  }}
+>
+  <span style={numberStyle}>58%</span>
+  <div style={descStyle}>
+    Increase in pick up point use
+  </div>
+</div>
 
         <div
-          className="text-box"
-          style={{
-            position: "absolute",
-            bottom: "7%",
-            right: "35%",
-            background: "#6ac9ff",
-            color: "#111",
-            ...statBox,
-          }}
-        >
-          <span style={numberStyle}>23%</span>
-          <div style={descStyle}>
-            Decrease in customer phone calls
-          </div>
-        </div>
+  className="text-box"
+  style={{
+    top: "7%",
+    right: "7%",
+    background: "#333",
+    color: "#fff",
+    padding: "30px 30px",
+    ...statBox,
+  }}
+>
+  <span style={numberStyle}>27%</span>
+  <div style={descStyle}>
+    Increase in pick up point use
+  </div>
+</div>
 
         <div
-          className="text-box"
-          style={{
-            position: "absolute",
-            bottom: "7%",
-            right: "12%",
-            background: "#fa7328",
-            color: "#111",
-            ...statBox,
-          }}
-        >
-          <span style={numberStyle}>40%</span>
-          <div style={descStyle}>
-            Decrease in customer phone calls
-          </div>
-        </div>
+  className="text-box"
+  style={{
+    bottom: "7%",
+    right: "35%",
+    background: "#6ac9ff",
+    color: "#111",
+    padding: "30px 30px",
+    ...statBox,
+  }}
+>
+  <span style={numberStyle}>23%</span>
+  <div style={descStyle}>
+    Decrease in customer phone calls
+  </div>
+</div>
+
+        <div
+  className="text-box"
+  style={{
+    bottom: "7%",
+    right: "12%",
+    background: "#fa7328",
+    color: "#111",
+    padding: "30px 30px",
+    ...statBox,
+  }}
+>
+  <span style={numberStyle}>40%</span>
+  <div style={descStyle}>
+    Decrease in customer phone calls
+  </div>
+</div>
       </div>
     </div>
   );
